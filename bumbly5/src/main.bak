@@ -2,13 +2,25 @@ import './createPost.js';
 
 
 import { Devvit, useState } from '@devvit/public-api';
-import { FlairListResponse } from '@devvit/protos';
+
 
 // Defines the messages that are exchanged between Devvit and Web View
 type WebViewMessage =
-  { 
+  | {
+      type: 'initialData';
+      data: { username: string; currentCounter: number };
+    }
+  | {
+      type: 'setCounter';
+      data: { newCounter: number };
+    }
+  | {
+      type: 'updateCounter';
+      data: { currentCounter: number };
+    }
+ | { 
 	type: 'simple';
-	data: { username: string; squareness: number};
+	data: { squareness: number};
    } 
 ;
 
@@ -17,12 +29,9 @@ Devvit.configure({
   redis: true,
 });
 
-//const flair = Devvit.use(Devvit.Types.RedditAPI.Flair);
-
 // Add a custom post type to Devvit
 Devvit.addCustomPostType({
   name: 'bumblybox',
-  flair: "flairBlue",
   height: 'tall',
   render: (context) => {
     // Load username with `useAsync` hook
@@ -43,27 +52,48 @@ Devvit.addCustomPostType({
     // When the web view invokes `window.parent.postMessage` this function is called
     const onMessage = async (msg: WebViewMessage) => {
       switch (msg.type) {
+        case 'setCounter':
+          await context.redis.set(`counter_${context.postId}`, msg.data.newCounter.toString());
+          context.ui.webView.postMessage('myWebView', {
+            type: 'updateCounter',
+            data: {
+              currentCounter: msg.data.newCounter,
+            },
+          });
+          setCounter(msg.data.newCounter);
+          break;
+        case 'initialData':
 	case 'simple':
            await context.redis.set(`counter_${context.postId}`, msg.data.squareness.toString());
        
-           context.ui.webView.postMessage('myWebView', {
-            type: 'simple',
+            context.ui.webView.postMessage('myWebView', {
+            type: 'updateCounter',
             data: {
-              username: msg.data.username,
-              squareness: msg.data.squareness
+              currentCounter: msg.data.squareness,
             },
           });
           setCounter(msg.data.squareness);
-           //Next... post the message contained in username to reddit.
-	   //See ref: https://www.reddit.com/r/Devvit/comments/1hepamy/using_devvit_with_the_reddit_api_to_get_subreddit/          
-	   //see also: https://developers.reddit.com/docs/0.9/api   
-	break;
+          
+	   break;
+        case 'updateCounter':
+          break;
 
         default:
           throw new Error(`Unknown message type: ${msg satisfies never}`);
       }
     };
 
+    // When the button is clicked, send initial data to web view and show it
+    const onShowWebviewClick = () => {
+      setWebviewVisible(true);
+      context.ui.webView.postMessage('myWebView', {
+        type: 'initialData',
+        data: {
+          username: username,
+          currentCounter: counter,
+        },
+      });
+    };
 
     // Render the custom post type
     return (

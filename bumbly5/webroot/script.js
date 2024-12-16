@@ -91,7 +91,7 @@ class App {
 			{
 			sideLength=sideLength+1;
 			output2.innerText=sideLength.toString();
-			myPic.src="./assets.box1.png";
+			myPic.src="./assets/box1.png";
 			isSquare=0;
 			}
       	         output2.innerText=isSquare.toString(); 
@@ -194,9 +194,14 @@ class App {
 	// how many columns found and how many diagonals found. 
 	// It posts the messsage to reddit. If a square is found, it also sets flair appropriately.
       		window.parent?.postMessage(
-        	{ type: 'setCounter', data: { newCounter: Number(counter - 1) } },
-       		 '*'
-      		);
+        //	{ type: 'setCounter', data: { newCounter: Number(counter - 1) } },
+       	//	 '*'
+      	//	);
+        //	{ type: 'simple', data: { squareness: Number(isSquare)  } },
+        	{ type: 'simple', data: { username: messageString, squareness: Number(isSquare)  } },
+		'*'
+              );
+
     	});
   } //close the constructor
 
