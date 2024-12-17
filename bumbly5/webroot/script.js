@@ -21,7 +21,11 @@ class App {
     	const messageLabel = document.querySelector('#squareQ');
     	const ribbonLabel = document.querySelector('#ribbons');
     	const myText=document.querySelector('#in-text');
-    	const myPic=document.querySelector('#pic1');
+    	const picE=document.querySelector('#picE');
+	const picV=document.querySelector('#picV');
+	const picDL=document.querySelector('#picDL');
+	const picDR=document.querySelector('#picDR');
+	const picI=document.querySelector('#picI');
 	const output2 = document.querySelector('#commentOutput');
 
 	
@@ -29,6 +33,7 @@ class App {
     	var isSquare=0;
 	var isGibberish=0;
     	var columnFound=0;
+	var columnTemp=0;
     	var columnLetter='8';
 	var columnNumber=-1;
     	var diag1Found=0;
@@ -69,13 +74,12 @@ class App {
   	//register button  listeners
 	  
     	aboutButton.addEventListener('click', () => {
-	    	output.innerText="Make a reddit post. Get bling or flair if its length is square and a column or diagonal all has the same letter.";
+	    	output.innerText="Make a reddit post. Get bling if its length is square and a column or diagonal all has the same letter.";
 //		this.myFunction();
 	});
 
     	checkButton.addEventListener('click',  () => {
 
-      		output.innerText="Yo";
 		
 	
    	  	//check if square
@@ -85,20 +89,23 @@ class App {
  	       	if((messageString.length-(sideLength*sideLength))<.001)
        			{
                	 	messageLabel.innerText="Yes";
-			myPic.src="./assets/box2.png";
+			picE.hidden=false;
 			isSquare=1;
+			picE.height=(50+0.25*sideLength);
+                        picE.width=(50+0.25*sideLength);
+
 
                 	}
 		else
 			{
 			sideLength=sideLength+1;
-			myPic.src="./assets/box1.png";
+			picE.hidden=true;
 			isSquare=0;
 			messageLabel.innerText="No";
 			}
 
 		//Display nicely in output
-		outRow="";
+		outRow="Here's your post in bumblybox form: \n \n";
 		for(var ii=0;ii<messageString.length;ii=ii+sideLength)
 		{
 			outRow=outRow.concat(messageString.substring(ii, ii+sideLength));
@@ -122,10 +129,19 @@ class App {
 			 	{
 					isGibberish=1;
 					output2.innerText="yes";
+					outRow=outRow+"\n You only get bling for posts with actual text."
+					output.innerText=outRow;
+					picE.hidden=true;
+					picV.hidden=true;
+					picDL.hidden=true;
+					picDR.hidden=true;
+					picI.hidden=true;
 				}
 				
                         //Eventually, I could add more checks here... for example to make sure 
 		        //at least most of the words found are in a dictionary. This is OK for now.
+
+			//Also, I could put a check for uniqueness here too possibly.
 
 			}
 
@@ -133,35 +149,46 @@ class App {
 		
 		//check if you find column matches
 	        outMessage="";
-		columnNumber=-1;
+		//columnNumber=0;
+		columnFound=0;
 		if((isSquare>0)&&(sideLength>1)&&(isGibberish==0))
 			
 			{
 			 for (var col=0; col<sideLength;col++)
 				{
-				  columnFound=0;
+				  columnTemp=0;
 				  columnLetter=messageString[col];
 
 				  for(var row=1;row<sideLength;row++)
 					{
 						if(messageString[row*sideLength+col]==columnLetter)
 						{
-							columnFound=columnFound+1;
+							columnTemp=columnTemp+1;
 						}
 					}
-				  if(columnFound>sideLength-1.1)
+				  if(columnTemp>sideLength-1.1)
 					{
-						columnNumber=col;
+					//	columnNumber=col;
+						columnFound=columnFound+1
 					}
-				  else
-					{columnNumber=-1;
-					}
-				  if(columnNumber>-1)
-					{
-						outMessage=outMessage+"Column ";
-						outMessage=outMessage+columnNumber.toString();
-					}
- 				}
+				 // else
+				//	{
+				//		columnNumber=-1;
+				//	}
+				}
+			if(columnFound>0)
+				{
+				outMessage=outMessage+"Column ";
+				picV.hidden=false;
+				picV.height=(50+0.25*sideLength);
+                        	picV.width=(50+0.25*sideLength);
+
+				}
+			else
+				{
+				picV.hidden=true;
+				}
+ 				
 			} 
 		//check if you find diagonal matches
 		if((isSquare>0)&&(sideLength>1)&&(isGibberish==0))
@@ -177,7 +204,17 @@ class App {
 					}
 				}
 			if(diag1Found>sideLength-1.1)
-				{outMessage=outMessage+"  Left Diag";}
+				{
+				outMessage=outMessage+"  Left Diag";
+				picDL.hidden=false;
+				picDL.height=(50+0.25*sideLength);
+                        	picDL.width=(50+0.25*sideLength);
+
+				}
+			else
+				{
+				picDL.hidden=true;
+				}
 			}
 		if((isSquare>0)&&(sideLength>1)&&(isGibberish==0))
 		{
@@ -195,6 +232,14 @@ class App {
 		        if((diag2Found>sideLength-1.1)&&(sideLength>0))
 			{
 				outMessage=outMessage+"  Right diag";
+				picDR.hidden=false;
+				picDR.height=(50+0.25*sideLength);
+	                        picDR.width=(50+0.25*sideLength);
+
+			}
+			else
+			{
+				picDR.hidden=true;
 			}
 		}
 			ribbonLabel.innerText=outMessage;
@@ -214,6 +259,7 @@ class App {
         	{ type: 'simple', data: { messagePost: messageString, squareness: Number(isSquare)  } },
 		'*'
               );
+		ribbonLabel.innerText="Currently this goes to the back end. Eventually, it may be a separate subreddit post.";
 
     	});
   } //close the constructor

@@ -10,20 +10,37 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>bumblybox</h1>
-    <img src="./assets/box1.png" id="pic1" height=40 width=40>
+  <div class="row">
+	  <img src="./assets/bbee4.png" height=60 width=60 align="left">
+	  <img src="./assets/bbee3.png" height=60 width=60 align="right">
+  </div>
+
+
+
     <input type ="text" id="in-text" placeholder="Enter your post">
-    <h3>Square?:  <span id="squareQ">Guest</span></h3>
-    <h3>Ribbons found?: <span id="ribbons">0</span></h3>
-    <h3>Is gibberish?: <span id="commentOutput">0</span></h3>
     <p id="messageOutput"></p>
-    
+ 
+   <div class="row">
+            <img src="./assets/boxE.png" id="picE" height=40 width=40 hidden=true>
+            <img src="./assets/boxV.png" id="picV" height=40 width=40 hidden=true>
+            <img src="./assets/boxDL.png" id="picDL" height=40 width=40 hidden=true>
+            <img src="./assets/boxDR.png" id="picDR" height=40 width=40 hidden=true>
+            <img src="./assets/boxI.png" id="picI" height=40 width=40 hidden=true>
+    </div>
+
 
     <div class="button-container">
       <button id="btn-about">About</button>
       <button id="btn-check">Check</button>
       <button id="btn-post">Post</button>
     </div>
+
+      <section>
+	Debugging information: 
+	<li>square?: <span id="squareQ">No</span>
+	<li>gibberish?: <span id="commentOutput">No</span>
+	<li>features?: <span id="ribbons">No</span>
+      </section>
     <script type="application/javascript" src="script.js"></script>
   </body>
 </html>
