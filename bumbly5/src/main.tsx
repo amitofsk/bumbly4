@@ -8,7 +8,7 @@ import { FlairListResponse } from '@devvit/protos';
 type WebViewMessage =
   { 
 	type: 'simple';
-	data: { username: string; squareness: number};
+	data: { messagePost: string; squareness: number};
    } 
 ;
 
@@ -26,10 +26,10 @@ Devvit.addCustomPostType({
   height: 'tall',
   render: (context) => {
     // Load username with `useAsync` hook
-    const [username] = useState(async () => {
-      const currUser = await context.reddit.getCurrentUser();
-      return currUser?.username ?? 'anon';
-    });
+    //const [messagePost] = useState(async () => {
+    //  const currUser = await context.reddit.getCurrentUser();
+    //  return currUser?.messagePost ?? 'anon';
+    //});
 
     // Load latest counter from redis with `useAsync` hook
     const [counter, setCounter] = useState(async () => {
@@ -49,7 +49,7 @@ Devvit.addCustomPostType({
            context.ui.webView.postMessage('myWebView', {
             type: 'simple',
             data: {
-              username: msg.data.username,
+              messagePost: msg.data.messagePost,
               squareness: msg.data.squareness
             },
           });

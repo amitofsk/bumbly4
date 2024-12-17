@@ -18,16 +18,16 @@ class App {
     	const checkButton = document.querySelector('#btn-check');
     	const postButton = document.querySelector('#btn-post');
     	const aboutButton = document.querySelector('#btn-about');
-    	const messageLabel = document.querySelector('#messageLen');
-    	const counterLabel = document.querySelector('#counter');
+    	const messageLabel = document.querySelector('#squareQ');
+    	const ribbonLabel = document.querySelector('#ribbons');
     	const myText=document.querySelector('#in-text');
     	const myPic=document.querySelector('#pic1');
 	const output2 = document.querySelector('#commentOutput');
 
 	
-    	var counter = 0;
     	var messageString="x";
     	var isSquare=0;
+	var isGibberish=0;
     	var columnFound=0;
     	var columnLetter='8';
 	var columnNumber=-1;
@@ -38,6 +38,8 @@ class App {
 	var sideLength=0.0;
 	var outRow="";
 	var outMessage="";
+	var spaceCount=0;
+	var spacesPerChar=0.15;
     	// When the Devvit app sends a message with `context.ui.webView.postMessage`, this will be triggered
     	window.addEventListener('message', (ev) => {
       		const { type, data } = ev.data;
@@ -51,15 +53,15 @@ class App {
 
         		// Load initial data
         		if (message.type === 'initialData') {
-          			const { username, currentCounter } = message.data;
-          			messageLabel.innerText = username;
-          			counterLabel.innerText = counter = currentCounter;
+          			const { messagePost, currentCounter } = message.data;
+          			messageLabel.innerText = messagePost;
+          			ribbons.innerText = isSquare;
         		}
 
         		// Update counter
         		if (message.type === 'updateCounter') {
           		const { currentCounter } = message.data;
-          		counterLabel.innerText = counter = currentCounter;
+          		ribbons.innerText = isSquare;
         		}
       			}
     	});
@@ -78,23 +80,22 @@ class App {
 	
    	  	//check if square
 		messageString=myText.value;
-       		messageLabel.innerText=messageString.length;
+		messageString=messageString.replaceAll(" ","-");
 		sideLength=Math.floor(Math.sqrt(messageString.length));
  	       	if((messageString.length-(sideLength*sideLength))<.001)
        			{
-               	 	output2.innerText="FOUND A SQUARE";
-			//output2.innerText=sideLength.toString();
+               	 	messageLabel.innerText="Yes";
 			myPic.src="./assets/box2.png";
 			isSquare=1;
+
                 	}
 		else
 			{
 			sideLength=sideLength+1;
-			output2.innerText=sideLength.toString();
 			myPic.src="./assets/box1.png";
 			isSquare=0;
+			messageLabel.innerText="No";
 			}
-      	         output2.innerText=isSquare.toString(); 
 
 		//Display nicely in output
 		outRow="";
@@ -108,83 +109,95 @@ class App {
 		output.innerText=outRow;
 
 		//check if too  much gibberish or repetition
-		if(messageString=="bbb")
+		if((isSquare>0)&&(sideLength>1))
 			{
-			output2.innerText="Too much gibberish";
+			  //Check that there is an adequate number of spaces in the message...
+			 spaceCount=messageString.split("-").length-1;
+			 if(messageString.length*spacesPerChar<spaceCount)
+				{
+					isGibberish=0;
+					output2.innerText="No";
+				}
+			 else
+			 	{
+					isGibberish=1;
+					output2.innerText="yes";
+				}
+				
+                        //Eventually, I could add more checks here... for example to make sure 
+		        //at least most of the words found are in a dictionary. This is OK for now.
 
-			//calculate min words I expect...
-
-			//pick off individual words of the message and strip ending punctuation
-
-			//Open the files
-
-			//go through short file to find matches
-
-			//go through long file to find matches
-
-			//close the files
 			}
 
 
-
+		
 		//check if you find column matches
+	        outMessage="";
 		columnNumber=-1;
-		if(isSquare>0)
+		if((isSquare>0)&&(sideLength>1)&&(isGibberish==0))
 			
 			{
-			 output2.innerText="HERE";
-			
 			 for (var col=0; col<sideLength;col++)
 				{
 				  columnFound=0;
 				  columnLetter=messageString[col];
 
-			//	  for(row=1;row<sideLength-1;row++)
-			//		{
-			//			if(messageString[0]==columnLetter)
-			//			{
-			//				columnFound=columnFound+1;
-			//			}
-			//		}
-				 // if(columnFound==sideLength-1)
-				//	{
-				//		columnNumber=col;
-			//		}
-				 
-				}
-		        
-			columnNumber=20;
-			if(columnNumber>-10)
-				{output2.innerText="Found a Column";}
-			}
-        
+				  for(var row=1;row<sideLength;row++)
+					{
+						if(messageString[row*sideLength+col]==columnLetter)
+						{
+							columnFound=columnFound+1;
+						}
+					}
+				  if(columnFound>sideLength-1.1)
+					{
+						columnNumber=col;
+					}
+				  else
+					{columnNumber=-1;
+					}
+				  if(columnNumber>-1)
+					{
+						outMessage=outMessage+"Column ";
+						outMessage=outMessage+columnNumber.toString();
+					}
+ 				}
+			} 
 		//check if you find diagonal matches
-		if(isSquare>0)
+		if((isSquare>0)&&(sideLength>1)&&(isGibberish==0))
 			{
 			//check left diagonal
 			diag1Found=0;
 			diag1Letter=messageString[0];
-			for (var ii=0;ii<sideLength;ii++)
+			for (var ii=1;ii<sideLength;ii++)
 				{
 				  if(messageString[ii*sideLength+ii]==diag1Letter)
 					{
 						diag1Found=diag1Found+1;
 					}
 				}
-			if(diag1Found>sideLength-1)
-				{output2.innerText="Found left diagonal.";}
+			if(diag1Found>sideLength-1.1)
+				{outMessage=outMessage+"  Left Diag";}
 			}
+		if((isSquare>0)&&(sideLength>1)&&(isGibberish==0))
+		{
 			//check right diagonal
 			diag2Found=0;
 			diag2Letter=messageString[sideLength-1];
-		        for(var ii=0;ii<sideLength;ii++)
-			{	
-			//UNFINISHED
-			}
-		        if(diag2Found>sideLength-1)
+		        for(var ii=2;ii<sideLength+1;ii++)
+				{
+
+				if(messageString[(ii)*(sideLength)-ii]==diag2Letter)
+					{
+						diag2Found=diag2Found+1;
+					}
+				}
+		        if((diag2Found>sideLength-1.1)&&(sideLength>0))
 			{
-				output2.innerText="Found right diagonal.";
+				outMessage=outMessage+"  Right diag";
 			}
+		}
+			ribbonLabel.innerText=outMessage;
 
     	});
 
@@ -198,7 +211,7 @@ class App {
        	//	 '*'
       	//	);
         //	{ type: 'simple', data: { squareness: Number(isSquare)  } },
-        	{ type: 'simple', data: { username: messageString, squareness: Number(isSquare)  } },
+        	{ type: 'simple', data: { messagePost: messageString, squareness: Number(isSquare)  } },
 		'*'
               );
 
