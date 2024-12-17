@@ -2,18 +2,14 @@
  * Here's the javascript that does most of the work. It has event listeners for handling
  * button presses. If the check button is pressed, it checks if the message has square length
  * and meets other criteria. If the post button is pressed, info is sent to the server side.
+ * See the readme for more information and additional features I'd like to add.
  *
- *
- * I spent too much time trying not to put everything in one function. However,
- * I didn't succeed in breaking it up. I'll leave that for later.
- * See reference  https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
- * OK... Be careful about what is a member variable and what is a local variable of the constructor.
  */
 
 
 class App {
   constructor() {
-    	//NOTE: THESE VARIABLES ARE LOCAL TO THE CONSTRUCTOR. They are not member variables.
+    	//These variables are local to the constructor. They are not member variables.
 	const output = document.querySelector('#messageOutput');
     	const checkButton = document.querySelector('#btn-check');
     	const postButton = document.querySelector('#btn-post');
@@ -33,18 +29,18 @@ class App {
     	var isSquare=0;
 	var isGibberish=0;
     	var columnFound=0;
-	var columnTemp=0;
-    	var columnLetter='8';
+//	var columnTemp=0;
+  //  	var columnLetter='8';
 	var columnNumber=-1;
     	var diag1Found=0;
-    	var diag1Letter='8';
     	var diag2Found=0;
-    	var diag2Letter='8';
 	var sideLength=0.0;
 	var outRow="";
 	var outMessage="";
 	var spaceCount=0;
 	var spacesPerChar=0.15;
+	var picStartSize=35;
+	var picGrowSize=3;
     	// When the Devvit app sends a message with `context.ui.webView.postMessage`, this will be triggered
     	window.addEventListener('message', (ev) => {
       		const { type, data } = ev.data;
@@ -71,49 +67,41 @@ class App {
       			}
     	});
 
-  	//register button  listeners
-	  
+
+  	//Register the button  listeners.
     	aboutButton.addEventListener('click', () => {
 	    	output.innerText="Make a reddit post. Get bling if its length is square and a column or diagonal all has the same letter.";
-//		this.myFunction();
 	});
+
+
 
     	checkButton.addEventListener('click',  () => {
 
-		
-	
-   	  	//check if square
+   	  	//Check if the message length is a pefect square. If so, display some bling.
 		messageString=myText.value;
 		messageString=messageString.replaceAll(" ","-");
 		sideLength=Math.floor(Math.sqrt(messageString.length));
- 	       	if((messageString.length-(sideLength*sideLength))<.001)
-       			{
+ 	       	isSquare=isSquareFunction(messageString);
+       		if(isSquare==1)
+			{
                	 	messageLabel.innerText="Yes";
 			picE.hidden=false;
-			isSquare=1;
-			picE.height=(50+0.25*sideLength);
-                        picE.width=(50+0.25*sideLength);
-
-
+			picE.height=(picStartSize+picGrowSize*sideLength);
+                        picE.width=(picStartSize+picGrowSize*sideLength);
                 	}
 		else
 			{
 			sideLength=sideLength+1;
 			picE.hidden=true;
-			isSquare=0;
+			picV.hidden=true;
+			picDL.hidden=true;
+			picDR.hidden=true;
+			picI.hidden=true;
 			messageLabel.innerText="No";
 			}
 
 		//Display nicely in output
-		outRow="Here's your post in bumblybox form: \n \n";
-		for(var ii=0;ii<messageString.length;ii=ii+sideLength)
-		{
-			outRow=outRow.concat(messageString.substring(ii, ii+sideLength));
-			outRow=outRow.concat("\n");
-
-		}
-		
-		output.innerText=outRow;
+		outRow=displayPrettyFunction(messageString, sideLength);
 
 		//check if too  much gibberish or repetition
 		if((isSquare>0)&&(sideLength>1))
@@ -147,69 +135,39 @@ class App {
 
 
 		
-		//check if you find column matches
+		//Check if you find column matches, and if so show bling.
 	        outMessage="";
-		//columnNumber=0;
 		columnFound=0;
 		if((isSquare>0)&&(sideLength>1)&&(isGibberish==0))
 			
 			{
-			 for (var col=0; col<sideLength;col++)
-				{
-				  columnTemp=0;
-				  columnLetter=messageString[col];
-
-				  for(var row=1;row<sideLength;row++)
-					{
-						if(messageString[row*sideLength+col]==columnLetter)
-						{
-							columnTemp=columnTemp+1;
-						}
-					}
-				  if(columnTemp>sideLength-1.1)
-					{
-					//	columnNumber=col;
-						columnFound=columnFound+1
-					}
-				 // else
-				//	{
-				//		columnNumber=-1;
-				//	}
-				}
+			columnFound=checkColumns(messageString, sideLength);
 			if(columnFound>0)
 				{
 				outMessage=outMessage+"Column ";
 				picV.hidden=false;
-				picV.height=(50+0.25*sideLength);
-                        	picV.width=(50+0.25*sideLength);
+				picV.height=(picStartSize+picGrowSize*sideLength);
+                        	picV.width=(picStartSize+picGrowSize*sideLength);
 
 				}
 			else
 				{
 				picV.hidden=true;
 				}
- 				
-			} 
-		//check if you find diagonal matches
+			}
+
+
+		//Check if you find diagonal matches, and if so show bling.
 		if((isSquare>0)&&(sideLength>1)&&(isGibberish==0))
 			{
 			//check left diagonal
-			diag1Found=0;
-			diag1Letter=messageString[0];
-			for (var ii=1;ii<sideLength;ii++)
-				{
-				  if(messageString[ii*sideLength+ii]==diag1Letter)
-					{
-						diag1Found=diag1Found+1;
-					}
-				}
+			diag1Found=checkLeftDiagonal(messageString,sideLength)
 			if(diag1Found>sideLength-1.1)
 				{
 				outMessage=outMessage+"  Left Diag";
 				picDL.hidden=false;
-				picDL.height=(50+0.25*sideLength);
-                        	picDL.width=(50+0.25*sideLength);
-
+				picDL.height=(picStartSize+picGrowSize*sideLength);
+                        	picDL.width=(picStartSize+picGrowSize*sideLength);
 				}
 			else
 				{
@@ -217,32 +175,26 @@ class App {
 				}
 			}
 		if((isSquare>0)&&(sideLength>1)&&(isGibberish==0))
-		{
+			{
 			//check right diagonal
-			diag2Found=0;
-			diag2Letter=messageString[sideLength-1];
-		        for(var ii=2;ii<sideLength+1;ii++)
-				{
-
-				if(messageString[(ii)*(sideLength)-ii]==diag2Letter)
-					{
-						diag2Found=diag2Found+1;
-					}
-				}
+			diag2Found=checkRightDiagonal(messageString, sideLength);
 		        if((diag2Found>sideLength-1.1)&&(sideLength>0))
 			{
 				outMessage=outMessage+"  Right diag";
 				picDR.hidden=false;
-				picDR.height=(50+0.25*sideLength);
-	                        picDR.width=(50+0.25*sideLength);
+				picDR.height=(picStartSize+picGrowSize*sideLength);
+	                        picDR.width=(picStartSize+picGrowSize*sideLength);
 
 			}
 			else
 			{
 				picDR.hidden=true;
 			}
-		}
-			ribbonLabel.innerText=outMessage;
+			}
+		ribbonLabel.innerText=outMessage;
+
+
+		//In the future, maybe check for inner boxes, such as a two by two box of o's, in the message?
 
     	});
 
@@ -252,22 +204,104 @@ class App {
 	// how many columns found and how many diagonals found. 
 	// It posts the messsage to reddit. If a square is found, it also sets flair appropriately.
       		window.parent?.postMessage(
-        //	{ type: 'setCounter', data: { newCounter: Number(counter - 1) } },
-       	//	 '*'
-      	//	);
-        //	{ type: 'simple', data: { squareness: Number(isSquare)  } },
-        	{ type: 'simple', data: { messagePost: messageString, squareness: Number(isSquare)  } },
-		'*'
-              );
-		ribbonLabel.innerText="Currently this goes to the back end. Eventually, it may be a separate subreddit post.";
-
+        		{ type: 'simple', data: { messagePost: messageString, squareness: Number(isSquare)  } },
+				'*');
+				ribbonLabel.innerText="Currently this goes to the back end. Eventually, it may be a separate subreddit post.";
     	});
   } //close the constructor
 
- // myFunction () 
-//	{
-//		document.querySelector('#messageLen').innerText="Win";
-//	}
 }  //close the class
+
+
+
+//This function checks if the message length is a perfect square. 
+function isSquareFunction (inMsg)
+        {
+                var isSq=0;
+		var sideLength2;
+                sideLength2=Math.floor(Math.sqrt(inMsg.length));
+                if((inMsg.length-(sideLength2*sideLength2))<.001)
+                      {isSq=1;}
+                return isSq;
+        }
+
+
+
+//This function displays the message in bumblybox form
+function displayPrettyFunction(inMsg, sideLen)
+{
+
+ 	var outRow="Here's your post in bumblybox form: \n \n";
+        for(var ii=0;ii<inMsg.length;ii=ii+sideLen)
+             {
+               outRow=outRow.concat(inMsg.substring(ii, ii+sideLen));
+               outRow=outRow.concat("\n");
+                }
+
+                document.querySelector('#messageOutput').innerText=outRow;
+	return outRow;
+}
+
+
+//This function checks for left diagonals
+function checkLeftDiagonal(inMsg, sideLen)
+{
+	var foundDiag=0;
+        var diag1Letter=inMsg[0];
+        for (var ii=1;ii<sideLen;ii++)
+        {
+        	if(inMsg[ii*sideLen+ii]==diag1Letter)
+                {
+                   	foundDiag=foundDiag+1;
+                }
+        }
+
+	return foundDiag;
+}
+
+
+//This function checks for right diagonals
+function checkRightDiagonal(inMsg, sideLen)
+{
+	var foundDiag=0;
+        var diag2Letter=inMsg[sideLen-1];
+        for(var ii=2;ii<sideLen+1;ii++)
+        {
+          if(inMsg[(ii)*(sideLen)-ii]==diag2Letter)
+            {
+               foundDiag=foundDiag+1;
+             }
+	}
+
+	return foundDiag;
+}
+
+
+
+//This function checks for columns.
+function checkColumns(inMsg, sideLen)
+{
+	var foundColumn=0;
+	var columnTemp=0;
+	var columnLetter='7';
+	for (var col=0; col<sideLen;col++)
+            {
+            columnTemp=0;
+            columnLetter=inMsg[col];
+ 	    for(var row=1;row<sideLen;row++)
+              	{
+                if(inMsg[row*sideLen+col]==columnLetter)
+                    {
+                    columnTemp=columnTemp+1;
+                    }
+                }
+             if(columnTemp>sideLen-1.1)
+                {
+                foundColumn=foundColumn+1;
+                }
+             }
+	return foundColumn;
+}
+
 
 new App();
